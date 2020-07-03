@@ -69,6 +69,27 @@
                     );
                 }
 
+                /**
+                 * Assess each vial based on it's requirements, using the
+                 * reported results.
+                 *
+                 * @param   String[]    requirements    Requirements for each vial
+                 * @param   Boolean[]   results         Results reported through the UI
+                 * @return  Object[]                    Assessment outcome
+                 */
+                function assessResults(requirements, results) {
+                    return Object.keys(requirements)
+                        .map((key) => {
+                            return {
+                                vial_id: key,
+                                result: checkVial(
+                                    requirements[key],
+                                    results
+                                )
+                            };
+                        });
+                }
+
                 application.register("data", class extends Stimulus.Controller {
                     static get targets() {
                         return [ "file", "well", "output", "m1", "m2", "m3" ]
@@ -111,18 +132,12 @@
                                 header: true
                             }
                         );
-                        const vialRequirements = parseRequirements(parsed.data);
 
-                        const vialResults = Object.keys(vialRequirements)
-                            .map((key) => {
-                                return {
-                                    vial_id: key,
-                                    result: checkVial(
-                                        vialRequirements[key],
-                                        controller.results
-                                    )
-                                };
-                            });
+                        const vialResults = assessResults(
+                            parseRequirements(parsed.data),
+                            controller.results
+                        );
+
                         const resultString = vialResults
                             .filter((vial) => vial.result)
                             .map((vial) => vial.vial_id)
