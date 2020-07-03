@@ -42,6 +42,33 @@
                     return pass;
                 }
 
+                /**
+                 * Parse the requirements data.
+                 *
+                 * Goes through the CSV any formats each line so that the
+                 * requirements for each vial are in a single string.
+                 *
+                 * @param   object[]    data    Key-value data from CSV
+                 * @return  string[]            Requirements for each sample
+                 */
+                function parseRequirements(data) {
+                    return data.reduce(
+                        function (require, line) {
+                            Object.keys(line)
+                                .filter((key) => key !== 'well_id')
+                                .forEach(function (key) {
+                                    if (require[key] === undefined) {
+                                        require[key] = '';
+                                    }
+                                    require[key] += line[key];  
+                                });
+
+                            return require;
+                        },
+                        {}
+                    );
+                }
+
                 application.register("data", class extends Stimulus.Controller {
                     static get targets() {
                         return [ "file", "well", "output", "m1", "m2", "m3" ]
@@ -84,28 +111,14 @@
                                 header: true
                             }
                         );
-                        const vialData = parsed.data.reduce(
-                            function (require, line) {
-                                Object.keys(line)
-                                    .filter((key) => key !== 'well_id')
-                                    .forEach(function (key) {
-                                        if (require[key] === undefined) {
-                                            require[key] = '';
-                                        }
-                                        require[key] += line[key];  
-                                    });
+                        const vialRequirements = parseRequirements(parsed.data);
 
-                                return require;
-                            },
-                            {}
-                        );
-
-                        const vialResults = Object.keys(vialData)
+                        const vialResults = Object.keys(vialRequirements)
                             .map((key) => {
                                 return {
                                     vial_id: key,
                                     result: checkVial(
-                                        vialData[key],
+                                        vialRequirements[key],
                                         controller.results
                                     )
                                 };
