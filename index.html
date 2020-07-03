@@ -90,6 +90,20 @@
                         });
                 }
 
+                /**
+                 * Formats the results provided, allowing it to be neatly
+                 * displayed within the UI.
+                 *
+                 * @param   Object[]    results Assessment outcome
+                 * @return  String              Displayable string
+                 */
+                function formatOutput(results) {
+                    return results
+                        .filter((vial) => vial.result)
+                        .map((vial) => vial.vial_id)
+                        .join(', ');
+                }
+
                 application.register("data", class extends Stimulus.Controller {
                     static get targets() {
                         return [ "file", "well", "output", "m1", "m2", "m3" ]
@@ -133,15 +147,12 @@
                             }
                         );
 
-                        const vialResults = assessResults(
-                            parseRequirements(parsed.data),
-                            controller.results
+                        const resultString = formatOutput(
+                            assessResults(
+                                parseRequirements(parsed.data),
+                                controller.results
+                            )
                         );
-
-                        const resultString = vialResults
-                            .filter((vial) => vial.result)
-                            .map((vial) => vial.vial_id)
-                            .join(', ');
 
                         controller.output = (resultString === '') ? 'No positive vials found, possible input error' : resultString;
                     }
